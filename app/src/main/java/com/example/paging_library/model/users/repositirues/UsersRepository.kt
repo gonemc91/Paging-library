@@ -1,6 +1,6 @@
-package com.example.paging_library.views.model.users.repositirues
+package com.example.paging_library.model.users.repositirues
 
-import com.example.paging_library.views.model.users.User
+import com.example.paging_library.model.users.User
 import kotlinx.coroutines.flow.Flow
 import androidx.paging.PagingData
 

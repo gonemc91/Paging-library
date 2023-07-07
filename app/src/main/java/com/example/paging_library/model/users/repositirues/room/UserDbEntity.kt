@@ -1,10 +1,10 @@
-package com.example.paging_library.views.model.users.repositirues.room
+package com.example.paging_library.model.users.repositirues.room
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.example.paging_library.views.model.users.User
+import com.example.paging_library.model.users.User
 
 
 

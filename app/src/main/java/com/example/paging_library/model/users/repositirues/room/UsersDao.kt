@@ -1,4 +1,4 @@
-package com.example.paging_library.views.model.users.repositirues.room
+package com.example.paging_library.model.users.repositirues.room
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -7,7 +7,7 @@ import androidx.room.Update
 
 
 @Dao
-interface UserDao {
+interface UsersDao {
 
     @Query("SELECT * FROM users " +
             "WHERE :searchBy = '' OR name LIKE '%' || :searchBy || '%' " + // search substring

@@ -1,4 +1,4 @@
-package com.example.paging_library.views.model.users
+package com.example.paging_library.model.users
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState

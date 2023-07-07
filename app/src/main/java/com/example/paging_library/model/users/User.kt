@@ -1,4 +1,4 @@
-package com.example.paging_library.views.model.users
+package com.example.paging_library.model.users
 
 /**
  * Class for representing user data in the app.
