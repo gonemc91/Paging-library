@@ -3,16 +3,19 @@ package com.example.paging_library.views
 import androidx.annotation.StringRes
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import androidx.paging.map
 import com.example.nav_components_2_tabs_exercise.R
 import com.example.paging_library.MutableLiveEvent
 import com.example.paging_library.adapters.UserAdapter
+import com.example.paging_library.model.users.User
 import com.example.paging_library.model.users.repositirues.UsersRepository
 import com.example.paging_library.publishEvent
 import com.example.paging_library.share
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 
@@ -23,9 +26,7 @@ class MainViewModel(
     val isErrorsEnabled: Flow<Boolean> = usersRepository.isErrorEnabled()
 
     val usersFlow: Flow<PagingData<UserListItem>>
-        get() {
-            TODO()
-        }
+
 
     private  val searchBy = MutableLiveData("")
 
@@ -42,6 +43,19 @@ class MainViewModel(
     val invalidateEvents = _invalidateEvents.share()
 
     init{
+        val originalUsersFlow = searchBy.asFlow()
+        // if user types text too quickly -> filtering intermediate values to avoid excess loads
+            .debounce(500)
+            .flatMapLatest{
+                usersRepository.getPageUsers(it)
+            }
+            .cachedIn(viewModelScope)
+
+        usersFlow = combine(
+            originalUsersFlow,
+            localChangesFlow.debounce(50),
+            this::merge
+        )
 
 
     }
@@ -60,6 +74,39 @@ class MainViewModel(
         }
     }
 
+    override fun onToggleFavoriteFlag(userListItem: UserListItem){
+        if(isInProgress(userListItem)) return
+        viewModelScope.launch {
+            try {
+                setProgress(userListItem, true)
+                setFavoriteFlag(userListItem)
+            }catch (e: Exception){
+                showError(R.string.error_delete)
+            }finally {
+                setProgress(userListItem, false)
+            }
+        }
+    }
+
+    fun setSearchBy(value: String){
+        if(this.searchBy.value == value) return
+        this.searchBy.value = value
+        scrollListToTop()
+    }
+
+    fun refresh() {
+        this.searchBy.postValue(this.searchBy.value)
+    }
+
+
+
+
+    private suspend fun setFavoriteFlag(userListItem: UserListItem){
+        val newFlagValue = !userListItem.isFavorite
+        usersRepository.setIsFavorite(userListItem.user, newFlagValue)
+        localChanges.favoriteFlags[userListItem.id] = newFlagValue
+        localChangesFlow.value = OnChange(localChanges)
+    }
 
 
 
@@ -86,6 +133,32 @@ class MainViewModel(
 
     private fun showError(@StringRes errorMessage: Int){
         _errorEvents.publishEvent(errorMessage)
+    }
+
+    private fun scrollListToTop(){
+        _scrollEvents.publishEvent(Unit)
+    }
+
+    fun setEnableErrors(value: Boolean){
+        //called when 'Enable Errors' checkbox value is changed
+        usersRepository.setErrorsEnabled(value)
+
+    }
+
+
+    private fun merge(users: PagingData<User>, localChanges: OnChange<LocalChanges>): PagingData<UserListItem>{
+        return users
+            .map { user->
+                val isInProgress = localChanges.value.idsInProgress.contains(user.id)
+                val localFavoriteFlag = localChanges.value.favoriteFlags[user.id]
+
+                val userWithLocalChanges = if (localFavoriteFlag == null){
+                    user
+                } else {
+                    user.copy(isFavorite = localFavoriteFlag)
+                }
+                UserListItem(userWithLocalChanges, isInProgress)
+            }
     }
 
 

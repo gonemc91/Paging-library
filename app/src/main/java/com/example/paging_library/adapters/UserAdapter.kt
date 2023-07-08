@@ -22,13 +22,13 @@ import com.example.paging_library.views.UserListItem
  */
 class UserAdapter(
 private val listener: Listener
-) : PagingDataAdapter<UserListItem, UserAdapter.Holder>(UsersDiffCallback()), View.OnClickListener{
+) : PagingDataAdapter<UserListItem, UserAdapter.Holder>(Listener.UsersDiffCallback()), View.OnClickListener {
 
     override fun onClick(v: View) {
         val user = v.tag as UserListItem
-        if(v.id == R.id.starImageView){
+        if (v.id == R.id.starImageView) {
             listener.onToggleFavoriteFlag(user)
-        }else if (v.id == R.id.deleteImageView){
+        } else if (v.id == R.id.deleteImageView) {
             listener.onUserDelete(user)
         }
     }
@@ -51,7 +51,6 @@ private val listener: Listener
             deleteImageView.tag = user
 
 
-
         }
     }
 
@@ -64,14 +63,14 @@ private val listener: Listener
     }
 
 
-    private fun setIsFavorite(starImageView: ImageView, isFavorite: Boolean){
+    private fun setIsFavorite(starImageView: ImageView, isFavorite: Boolean) {
         val context = starImageView.context
-        if(isFavorite){
+        if (isFavorite) {
             starImageView.setImageResource(R.drawable.ic_star)
             starImageView.imageTintList = ColorStateList.valueOf(
                 ContextCompat.getColor(context, R.color.active)
             )
-        }else{
+        } else {
             starImageView.setImageResource(R.drawable.ic_star_outline)
             starImageView.imageTintList = ColorStateList.valueOf(
                 ContextCompat.getColor(context, R.color.inactive)
@@ -79,16 +78,16 @@ private val listener: Listener
         }
     }
 
-    private fun loadUserPhoto(imageView: ImageView, url: String){
+    private fun loadUserPhoto(imageView: ImageView, url: String) {
         val context = imageView.context
-        if(url.isNotBlank()){
+        if (url.isNotBlank()) {
             Glide.with(context)
                 .load(url)
                 .circleCrop()
                 .placeholder(R.drawable.ic_user_avatar)
                 .error(R.drawable.ic_user_avatar)
                 .into(imageView)
-        }else{
+        } else {
             Glide.with(context)
                 .load(R.drawable.ic_user_avatar)
                 .into(imageView)
@@ -96,10 +95,10 @@ private val listener: Listener
     }
 
     class Holder(
-         val binding: ItemUserBinding
+        val binding: ItemUserBinding
     ) : RecyclerView.ViewHolder(binding.root)
 
-    interface Listener{
+    interface Listener {
         /**
          * Called when the user taps the "Delete" button in a list item
          */
@@ -111,27 +110,27 @@ private val listener: Listener
          */
 
         fun onToggleFavoriteFlag(userListItem: UserListItem)
-    }
 
-    //----
+        //----
 
-    class UsersDiffCallback : DiffUtil.ItemCallback<UserListItem>(){
+        class UsersDiffCallback : DiffUtil.ItemCallback<UserListItem>() {
 
-        override fun areItemsTheSame(oldItem: UserListItem, newItem: UserListItem): Boolean {
-           return oldItem.id == newItem.id
+            override fun areItemsTheSame(oldItem: UserListItem, newItem: UserListItem): Boolean {
+                return oldItem.id == newItem.id
+            }
+
+            override fun areContentsTheSame(oldItem: UserListItem, newItem: UserListItem): Boolean {
+                return oldItem == newItem
+            }
+
+
         }
 
-        override fun areContentsTheSame(oldItem: UserListItem, newItem: UserListItem): Boolean {
-            return oldItem == newItem
-        }
-
-
     }
-
-
-
-
 }
+
+
+
 
 
 
